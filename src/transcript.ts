@@ -621,8 +621,15 @@ function extractTarget(toolName: string, input?: Record<string, unknown>): strin
     case 'Skill':
       return normalizeSkillName(input.skill);
     case 'Bash':
-      const cmd = input.command as string;
-      return cmd?.slice(0, 30) + (cmd?.length > 30 ? '...' : '');
+      if (typeof input.command !== 'string') {
+        return undefined;
+      }
+      const cmd = input.command.replace(/\s+/g, ' ').trim();
+      return cmd
+        ? cmd.length > 30
+          ? `${cmd.slice(0, 30).trimEnd()}...`
+          : cmd
+        : undefined;
   }
   return undefined;
 }

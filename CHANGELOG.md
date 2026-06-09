@@ -4,6 +4,11 @@ All notable changes to Claude HUD will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Preserve inherited terminal width in setup-generated statusline commands before probing `/dev/tty`, fixing narrow-pane wrapping/flicker in terminals without a controlling TTY (#581).
+- Use a lightweight Windows Node launcher for PowerShell/cmd setup instead of a PowerShell wrapper on every statusline refresh, reducing Windows render-time overhead while preserving update discovery (#555).
+- Collapse whitespace in multiline Bash tool targets before truncation so the tools line stays single-line (#594).
+
 ## [0.1.0] - 2026-06-03
 
 ### Added
