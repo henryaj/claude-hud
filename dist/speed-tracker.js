@@ -3,6 +3,8 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { createHash } from 'node:crypto';
 import { getHudPluginDir } from './claude-config-dir.js';
+import { createDebug } from './debug.js';
+const debug = createDebug('speed-tracker');
 const SPEED_WINDOW_MS = 2000;
 // Status lines can re-render many times per second while tokens stream.
 // Computing a rate from sub-500ms windows amplifies noise and produces
@@ -40,7 +42,8 @@ function readCache(homeDir, transcriptPath) {
         }
         return parsed;
     }
-    catch {
+    catch (err) {
+        debug('Failed to read speed cache:', err instanceof Error ? err.message : err);
         return null;
     }
 }
@@ -66,8 +69,8 @@ function writeCache(homeDir, transcriptPath, cache) {
             // Best-effort: cache permissions should not break speed tracking.
         }
     }
-    catch {
-        // Ignore cache write failures
+    catch (err) {
+        debug('Failed to write speed cache:', err instanceof Error ? err.message : err);
     }
 }
 function readFileSizeCache(cachePath) {
@@ -83,7 +86,8 @@ function readFileSizeCache(cachePath) {
         }
         return parsed;
     }
-    catch {
+    catch (err) {
+        debug('Failed to read file size cache:', err instanceof Error ? err.message : err);
         return null;
     }
 }
@@ -99,8 +103,8 @@ function writeFileSizeCache(cachePath, cache) {
             // Best-effort: cache permissions should not break speed tracking.
         }
     }
-    catch {
-        // Ignore cache write failures
+    catch (err) {
+        debug('Failed to write file size cache:', err instanceof Error ? err.message : err);
     }
 }
 // Remove the pre-0.x global cache file once, if present. It has no owner
@@ -112,8 +116,8 @@ function removeLegacyCache(homeDir) {
             fs.unlinkSync(legacyPath);
         }
     }
-    catch {
-        // Ignore cleanup failures
+    catch (err) {
+        debug('Failed to remove legacy cache:', err instanceof Error ? err.message : err);
     }
 }
 /**
@@ -150,7 +154,8 @@ function getTranscriptSpeed(transcriptPath, homeDir, now) {
         writeFileSizeCache(cachePath, { fileSize, timestamp: now });
         return estimatedTokens / (deltaMs / 1000);
     }
-    catch {
+    catch (err) {
+        debug('Failed to compute transcript speed:', err instanceof Error ? err.message : err);
         return null;
     }
 }

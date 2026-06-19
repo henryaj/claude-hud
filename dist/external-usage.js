@@ -1,6 +1,8 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { createDebug } from './debug.js';
 import { sanitizeDisplayText } from './utils/sanitize.js';
+const debug = createDebug('external-usage');
 const MAX_BALANCE_LABEL_LENGTH = 50;
 export const EXTERNAL_USAGE_WRITE_THROTTLE_MS = 30_000;
 const fsDeps = {
@@ -124,7 +126,8 @@ function shouldWriteSnapshot(snapshotPath, nextSnapshot, now, deps) {
         const current = JSON.parse(deps.readFileSync(snapshotPath, 'utf8'));
         return JSON.stringify(comparableSnapshot(current)) !== JSON.stringify(comparableSnapshot(nextSnapshot));
     }
-    catch {
+    catch (err) {
+        debug('Failed to compare snapshot (will write):', err instanceof Error ? err.message : err);
         return true;
     }
 }
@@ -142,7 +145,8 @@ function directoryExists(dir, deps) {
     try {
         return deps.statSync(dir).isDirectory();
     }
-    catch {
+    catch (err) {
+        debug('Directory check failed for %s:', dir, err instanceof Error ? err.message : err);
         return false;
     }
 }
@@ -171,12 +175,13 @@ export function writeExternalUsageSnapshot(config, usage, now = Date.now(), deps
         deps.chmodSync(snapshotPath, 0o600);
         return true;
     }
-    catch {
+    catch (err) {
+        debug('Failed to write usage snapshot:', err instanceof Error ? err.message : err);
         try {
             deps.rmSync(tmpPath, { force: true });
         }
-        catch {
-            // Ignore cleanup errors; snapshot writes must not break rendering.
+        catch (cleanupErr) {
+            debug('Failed to clean up temp file:', cleanupErr instanceof Error ? cleanupErr.message : cleanupErr);
         }
         return false;
     }
@@ -222,7 +227,8 @@ export function getUsageFromExternalSnapshot(config, now = Date.now()) {
         }
         return usage;
     }
-    catch {
+    catch (err) {
+        debug('Failed to read external usage snapshot:', err instanceof Error ? err.message : err);
         return null;
     }
 }
