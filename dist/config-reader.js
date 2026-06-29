@@ -80,19 +80,19 @@ function readStringSetting(filePath, key) {
     }
     return undefined;
 }
-function readSandboxEnabled(filePath) {
+function readSandboxField(filePath, field) {
     if (!fs.existsSync(filePath))
         return undefined;
     try {
         const content = fs.readFileSync(filePath, 'utf8');
         const config = JSON.parse(content);
-        const enabled = config?.sandbox?.enabled;
-        if (typeof enabled === 'boolean') {
-            return enabled;
+        const value = config?.sandbox?.[field];
+        if (typeof value === 'boolean') {
+            return value;
         }
     }
     catch (error) {
-        debug(`Failed to read sandbox.enabled from ${filePath}:`, error);
+        debug(`Failed to read sandbox.${field} from ${filePath}:`, error);
     }
     return undefined;
 }
@@ -242,7 +242,7 @@ function isConfigCounts(value) {
         && Number.isFinite(counts.hooksCount)
         && counts.hooksCount >= 0
         && (counts.outputStyle === undefined || typeof counts.outputStyle === 'string')
-        && typeof counts.sandboxEnabled === 'boolean');
+        && (counts.sandboxState === 'strict' || counts.sandboxState === 'fallback' || counts.sandboxState === 'off'));
 }
 function readConfigCache(cacheKey, homeDir) {
     try {
@@ -376,26 +376,35 @@ function computeConfigCountsFresh(cwd) {
     // Note: Deduplication only occurs within each scope, not across scopes.
     // A server with the same name in both user and project scope counts as 2 (separate configs).
     const mcpCount = userMcpServers.size + projectMcpServers.size;
-    // sandbox.enabled, taking the highest-precedence settings file that defines it
-    // (project-local > project > user-local > user). CLI flag overrides are not
-    // visible to a subprocess, so they can't be reflected here.
-    let sandboxEnabled = false;
+    // Effective sandbox posture, reading each field from the highest-precedence
+    // settings file that defines it (project-local > project > user-local > user).
+    // CLI flag overrides are not visible to a subprocess, so they can't be seen.
     const sandboxSources = [
         cwd ? path.join(cwd, '.claude', 'settings.local.json') : null,
         cwd ? path.join(cwd, '.claude', 'settings.json') : null,
         path.join(claudeDir, 'settings.local.json'),
         path.join(claudeDir, 'settings.json'),
     ];
-    for (const source of sandboxSources) {
-        if (!source)
-            continue;
-        const value = readSandboxEnabled(source);
-        if (value !== undefined) {
-            sandboxEnabled = value;
-            break;
+    const effectiveSandboxField = (field) => {
+        for (const source of sandboxSources) {
+            if (!source)
+                continue;
+            const value = readSandboxField(source, field);
+            if (value !== undefined)
+                return value;
         }
-    }
-    return { claudeMdCount, rulesCount, mcpCount, hooksCount, outputStyle, sandboxEnabled };
+        return undefined;
+    };
+    const sandboxEnabled = effectiveSandboxField('enabled') === true;
+    const allowsUnsandboxed = effectiveSandboxField('allowUnsandboxedCommands');
+    // Fail safe: only call it 'strict' when unsandboxed commands are explicitly
+    // disallowed; anything enabled-but-unconfirmed is the more dangerous 'fallback'.
+    const sandboxState = !sandboxEnabled
+        ? 'off'
+        : allowsUnsandboxed === false
+            ? 'strict'
+            : 'fallback';
+    return { claudeMdCount, rulesCount, mcpCount, hooksCount, outputStyle, sandboxState };
 }
 export async function countConfigs(cwd) {
     const homeDir = os.homedir();

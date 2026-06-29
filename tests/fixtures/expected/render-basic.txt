@@ -1,2 +1,2 @@
-opus │ my-project
+opus │ my-project │ sandbox off
 Context ███░░░░░░░ 29%

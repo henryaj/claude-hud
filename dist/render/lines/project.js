@@ -9,6 +9,7 @@ import { renderAdvisorLine } from './advisor.js';
 import { normalizeAddedDirs, sanitize as sanitizeDisplayText, basenameOf, truncateBasename, MAX_RENDERED_ADDED_DIRS } from './added-dirs.js';
 import { getFileHref, safeHyperlink } from '../../utils/hyperlinks.js';
 import { formatModelDisplay } from '../model-display.js';
+import { renderSandboxBadge } from '../sandbox-badge.js';
 function resolvePathWithinCwd(cwd, candidatePath) {
     const resolvedCwd = path.resolve(cwd);
     const resolvedPath = path.resolve(cwd, candidatePath);
@@ -103,8 +104,8 @@ export function renderProjectLine(ctx) {
     else if (gitPart) {
         parts.push(gitPart);
     }
-    if (ctx.sandboxEnabled) {
-        parts.push(warningColor('sandbox', colors));
+    if (ctx.sandboxState) {
+        parts.push(renderSandboxBadge(ctx.sandboxState, colors));
     }
     // Advisor model sits inline with the model/project/git badge so the
     // configured /advisor is visible on the first line at a glance.

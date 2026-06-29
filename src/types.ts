@@ -156,5 +156,11 @@ export interface RenderContext {
   claudeCodeVersion?: string;
   effortLevel?: string;
   effortSymbol?: string;
-  sandboxEnabled?: boolean;
+  sandboxState?: SandboxState;
 }
+
+// Effective sandbox posture for the session:
+// - 'strict':   enabled and unsandboxed commands are disallowed (safest)
+// - 'fallback': enabled but unsandboxed commands are permitted (more dangerous)
+// - 'off':      not enabled (fail-safe default when undetermined)
+export type SandboxState = 'strict' | 'fallback' | 'off';

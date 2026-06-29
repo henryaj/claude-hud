@@ -1016,26 +1016,43 @@ test('renderProjectLine can give git its own segment for wrapping', () => {
   assert.ok(line.includes('my-project │ :feature/add-auth'), 'git should render as a separate segment');
 });
 
-test('renderSessionLine shows a sandbox badge when sandbox is enabled', () => {
+test('renderSessionLine shows a plain sandbox badge in strict mode', () => {
   const ctx = baseContext();
   ctx.stdin.cwd = '/tmp/my-project';
-  ctx.sandboxEnabled = true;
+  ctx.sandboxState = 'strict';
   const line = stripAnsi(renderSessionLine(ctx));
   assert.ok(line.includes('sandbox'), 'should show the sandbox badge');
+  assert.ok(!line.includes('fallback') && !line.includes('off'), 'strict badge has no qualifier');
 });
 
-test('renderSessionLine omits the sandbox badge when sandbox is disabled', () => {
+test('renderSessionLine labels the fallback sandbox state', () => {
   const ctx = baseContext();
   ctx.stdin.cwd = '/tmp/my-project';
-  ctx.sandboxEnabled = false;
+  ctx.sandboxState = 'fallback';
   const line = stripAnsi(renderSessionLine(ctx));
-  assert.ok(!line.includes('sandbox'), 'should not show the sandbox badge');
+  assert.ok(line.includes('sandbox fallback'), 'should label the fallback state');
 });
 
-test('renderProjectLine shows a sandbox badge when sandbox is enabled', () => {
+test('renderSessionLine shows "sandbox off" when sandbox is off', () => {
   const ctx = baseContext();
   ctx.stdin.cwd = '/tmp/my-project';
-  ctx.sandboxEnabled = true;
+  ctx.sandboxState = 'off';
+  const line = stripAnsi(renderSessionLine(ctx));
+  assert.ok(line.includes('sandbox off'), 'should warn that sandbox is off');
+});
+
+test('renderSessionLine omits the sandbox badge when state is undefined', () => {
+  const ctx = baseContext();
+  ctx.stdin.cwd = '/tmp/my-project';
+  ctx.sandboxState = undefined;
+  const line = stripAnsi(renderSessionLine(ctx));
+  assert.ok(!line.includes('sandbox'), 'no badge when showSandbox is off');
+});
+
+test('renderProjectLine shows a sandbox badge', () => {
+  const ctx = baseContext();
+  ctx.stdin.cwd = '/tmp/my-project';
+  ctx.sandboxState = 'strict';
   const line = stripAnsi(renderProjectLine(ctx) ?? '');
   assert.ok(line.includes('sandbox'), 'should show the sandbox badge');
 });

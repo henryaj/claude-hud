@@ -135,6 +135,7 @@ export interface RenderContext {
     claudeCodeVersion?: string;
     effortLevel?: string;
     effortSymbol?: string;
-    sandboxEnabled?: boolean;
+    sandboxState?: SandboxState;
 }
+export type SandboxState = 'strict' | 'fallback' | 'off';
 //# sourceMappingURL=types.d.ts.map

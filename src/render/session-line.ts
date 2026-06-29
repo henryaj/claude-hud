@@ -2,7 +2,8 @@ import type { RenderContext } from '../types.js';
 import { isLimitReached } from '../types.js';
 import { getContextPercent, getBufferedPercent, getModelName, formatModelName, shouldHideUsage } from '../stdin.js';
 import { getOutputSpeed } from '../speed-tracker.js';
-import { coloredBar, critical, git as gitColor, gitBranch as gitBranchColor, label, model as modelColor, project as projectColor, getContextColor, getQuotaColor, quotaBar, custom as customColor, warning as warningColor, RESET } from './colors.js';
+import { coloredBar, critical, git as gitColor, gitBranch as gitBranchColor, label, model as modelColor, project as projectColor, getContextColor, getQuotaColor, quotaBar, custom as customColor, RESET } from './colors.js';
+import { renderSandboxBadge } from './sandbox-badge.js';
 import { getAdaptiveBarWidth } from '../utils/terminal.js';
 import { renderCostEstimate } from './lines/cost.js';
 import { renderPromptCacheLine } from './lines/prompt-cache.js';
@@ -133,8 +134,8 @@ export function renderSessionLine(ctx: RenderContext): string {
     parts.push(gitPart);
   }
 
-  if (ctx.sandboxEnabled) {
-    parts.push(warningColor('sandbox', colors));
+  if (ctx.sandboxState) {
+    parts.push(renderSandboxBadge(ctx.sandboxState, colors));
   }
 
   // Session name (custom title from /rename, or auto-generated slug)
@@ -172,9 +173,11 @@ export function renderSessionLine(ctx: RenderContext): string {
 
   // Usage limits display (shown when enabled in config, respects usageThreshold)
   if (display?.showUsage !== false && ctx.usageData && !shouldHideUsage(ctx.stdin) && display?.usageBarOnly) {
-    // Just the current-session (5h) quota bar — no label, percentage, weekly, or reset time.
-    if (ctx.usageData.fiveHour !== null) {
-      parts.push(quotaBar(ctx.usageData.fiveHour, barWidth, colors));
+    // Current-session (5h) usage only: bar + percentage + "(5h)" label, no "Usage" word or weekly.
+    const fiveHour = ctx.usageData.fiveHour;
+    if (fiveHour !== null) {
+      const pct = display?.usageValue === 'remaining' ? Math.max(0, 100 - fiveHour) : fiveHour;
+      parts.push(`${quotaBar(fiveHour, barWidth, colors)} ${getQuotaColor(fiveHour, colors)}${pct}%${RESET} ${label('(5h)', colors)}`);
     }
   } else if (display?.showUsage !== false && ctx.usageData && !shouldHideUsage(ctx.stdin)) {
     const usageCompact = display?.usageCompact ?? false;

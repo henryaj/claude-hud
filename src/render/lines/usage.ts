@@ -32,10 +32,11 @@ export function renderUsageLine(
   }
 
   if (display?.usageBarOnly) {
-    // Just the current-session (5h) quota bar — no label, percentage, weekly, or reset time.
-    return ctx.usageData.fiveHour !== null
-      ? quotaBar(ctx.usageData.fiveHour, getAdaptiveBarWidth(), colors)
-      : null;
+    // Current-session (5h) usage only: bar + percentage + "(5h)" label, no "Usage" word or weekly.
+    const fiveHour = ctx.usageData.fiveHour;
+    if (fiveHour === null) return null;
+    const pct = display?.usageValue === 'remaining' ? Math.max(0, 100 - fiveHour) : fiveHour;
+    return `${quotaBar(fiveHour, getAdaptiveBarWidth(), colors)} ${getQuotaColor(fiveHour, colors)}${pct}%${RESET} ${label('(5h)', colors)}`;
   }
 
   const usageLabel = progressLabel("label.usage", colors, alignLabels);

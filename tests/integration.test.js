@@ -358,7 +358,7 @@ async function writeHudConfig(homeDir, config) {
   await fs.writeFile(path.join(dir, "config.json"), JSON.stringify(config), "utf8");
 }
 
-test("CLI shows the sandbox badge based on sandbox.enabled in settings", async (t) => {
+test("CLI reflects the sandbox posture (off / fallback / strict) from settings", async (t) => {
   const fixturePath = fileURLToPath(
     new URL("./fixtures/transcript-render.jsonl", import.meta.url),
   );
@@ -378,34 +378,52 @@ test("CLI shows the sandbox badge based on sandbox.enabled in settings", async (
     cwd: projectDir,
   });
   const run = () =>
-    spawnSync("node", ["dist/index.js"], {
+    stripAnsi(
+      spawnSync("node", ["dist/index.js"], {
+        cwd: path.resolve(process.cwd()),
+        input: stdin,
+        encoding: "utf8",
+        env: { ...process.env, HOME: homeDir, LANG: "C" },
+      }).stdout ?? "",
+    );
+
+  try {
+    const probe = spawnSync("node", ["dist/index.js"], {
       cwd: path.resolve(process.cwd()),
       input: stdin,
       encoding: "utf8",
       env: { ...process.env, HOME: homeDir, LANG: "C" },
     });
+    if (skipIfSpawnBlocked(probe, t)) return;
 
-  try {
-    let result = run();
-    if (skipIfSpawnBlocked(result, t)) return;
-    assert.doesNotMatch(stripAnsi(result.stdout), /sandbox/, "no badge without settings");
+    // No settings → fail safe to "sandbox off".
+    assert.match(run(), /sandbox off/, "no settings reads as off");
 
+    // Enabled without disallowing unsandboxed commands → fallback (the dangerous one).
     await writeFile(
       path.join(homeDir, ".claude", "settings.json"),
       JSON.stringify({ sandbox: { enabled: true } }),
       "utf8",
     );
-    result = run();
-    assert.match(stripAnsi(result.stdout), /sandbox/, "badge shows when user settings enable sandbox");
+    assert.match(run(), /sandbox fallback/, "enabled-only reads as fallback");
 
-    // Project settings take precedence over user settings.
+    // Explicitly disallowing unsandboxed commands → strict (plain badge, no qualifier).
+    await writeFile(
+      path.join(homeDir, ".claude", "settings.json"),
+      JSON.stringify({ sandbox: { enabled: true, allowUnsandboxedCommands: false } }),
+      "utf8",
+    );
+    const strict = run();
+    assert.match(strict, /sandbox/, "strict shows a badge");
+    assert.doesNotMatch(strict, /sandbox (off|fallback)/, "strict has no qualifier");
+
+    // Project settings take precedence over user settings → back to off.
     await writeFile(
       path.join(projectDir, ".claude", "settings.json"),
       JSON.stringify({ sandbox: { enabled: false } }),
       "utf8",
     );
-    result = run();
-    assert.doesNotMatch(stripAnsi(result.stdout), /sandbox/, "project settings override user (disabled)");
+    assert.match(run(), /sandbox off/, "project settings override user (off)");
   } finally {
     await rm(homeDir, { recursive: true, force: true });
   }
