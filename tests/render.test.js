@@ -1016,6 +1016,30 @@ test('renderProjectLine can give git its own segment for wrapping', () => {
   assert.ok(line.includes('my-project │ :feature/add-auth'), 'git should render as a separate segment');
 });
 
+test('renderSessionLine shows a sandbox badge when sandbox is enabled', () => {
+  const ctx = baseContext();
+  ctx.stdin.cwd = '/tmp/my-project';
+  ctx.sandboxEnabled = true;
+  const line = stripAnsi(renderSessionLine(ctx));
+  assert.ok(line.includes('sandbox'), 'should show the sandbox badge');
+});
+
+test('renderSessionLine omits the sandbox badge when sandbox is disabled', () => {
+  const ctx = baseContext();
+  ctx.stdin.cwd = '/tmp/my-project';
+  ctx.sandboxEnabled = false;
+  const line = stripAnsi(renderSessionLine(ctx));
+  assert.ok(!line.includes('sandbox'), 'should not show the sandbox badge');
+});
+
+test('renderProjectLine shows a sandbox badge when sandbox is enabled', () => {
+  const ctx = baseContext();
+  ctx.stdin.cwd = '/tmp/my-project';
+  ctx.sandboxEnabled = true;
+  const line = stripAnsi(renderProjectLine(ctx) ?? '');
+  assert.ok(line.includes('sandbox'), 'should show the sandbox badge');
+});
+
 test('renderToolsLine renders running and completed tools', () => {
   const ctx = baseContext();
   ctx.transcript.tools = [

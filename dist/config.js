@@ -67,6 +67,7 @@ export const DEFAULT_CONFIG = {
         showSessionName: false,
         showClaudeCodeVersion: false,
         showEffortLevel: true,
+        showSandbox: true,
         showMemoryUsage: false,
         showPromptCache: false,
         promptCacheTtlSeconds: 300,
@@ -428,6 +429,9 @@ export function mergeConfig(userConfig) {
         showEffortLevel: typeof migrated.display?.showEffortLevel === 'boolean'
             ? migrated.display.showEffortLevel
             : DEFAULT_CONFIG.display.showEffortLevel,
+        showSandbox: typeof migrated.display?.showSandbox === 'boolean'
+            ? migrated.display.showSandbox
+            : DEFAULT_CONFIG.display.showSandbox,
         showMemoryUsage: typeof migrated.display?.showMemoryUsage === 'boolean'
             ? migrated.display.showMemoryUsage
             : DEFAULT_CONFIG.display.showMemoryUsage,

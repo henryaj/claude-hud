@@ -101,7 +101,7 @@ export async function main(overrides: Partial<MainDeps> = {}): Promise<void> {
       lastCompactPostTokens: transcript.lastCompactPostTokens,
     });
 
-    const { claudeMdCount, rulesCount, mcpCount, hooksCount, outputStyle } =
+    const { claudeMdCount, rulesCount, mcpCount, hooksCount, outputStyle, sandboxEnabled } =
       await deps.countConfigs(stdin.cwd);
 
     const config = await deps.loadConfig();
@@ -178,6 +178,7 @@ export async function main(overrides: Partial<MainDeps> = {}): Promise<void> {
       claudeCodeVersion,
       effortLevel: effortInfo?.level,
       effortSymbol: effortInfo?.symbol,
+      sandboxEnabled: config.display.showSandbox ? sandboxEnabled : undefined,
     };
 
     deps.render(ctx);

@@ -114,6 +114,10 @@ export function renderProjectLine(ctx: RenderContext): string | null {
     parts.push(gitPart);
   }
 
+  if (ctx.sandboxEnabled) {
+    parts.push(warningColor('sandbox', colors));
+  }
+
   // Advisor model sits inline with the model/project/git badge so the
   // configured /advisor is visible on the first line at a glance.
   if (display?.showAdvisor) {

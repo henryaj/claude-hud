@@ -13,6 +13,7 @@ export interface ConfigCounts {
   mcpCount: number;
   hooksCount: number;
   outputStyle?: string;
+  sandboxEnabled: boolean;
 }
 
 interface SentinelState {
@@ -102,6 +103,21 @@ function readStringSetting(filePath: string, key: string): string | undefined {
     }
   } catch (error) {
     debug(`Failed to read ${key} from ${filePath}:`, error);
+  }
+  return undefined;
+}
+
+function readSandboxEnabled(filePath: string): boolean | undefined {
+  if (!fs.existsSync(filePath)) return undefined;
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const config = JSON.parse(content);
+    const enabled = config?.sandbox?.enabled;
+    if (typeof enabled === 'boolean') {
+      return enabled;
+    }
+  } catch (error) {
+    debug(`Failed to read sandbox.enabled from ${filePath}:`, error);
   }
   return undefined;
 }
@@ -266,6 +282,7 @@ function isConfigCounts(value: unknown): value is ConfigCounts {
     && Number.isFinite(counts.hooksCount)
     && counts.hooksCount >= 0
     && (counts.outputStyle === undefined || typeof counts.outputStyle === 'string')
+    && typeof counts.sandboxEnabled === 'boolean'
   );
 }
 
@@ -423,7 +440,26 @@ function computeConfigCountsFresh(cwd?: string): ConfigCounts {
   // A server with the same name in both user and project scope counts as 2 (separate configs).
   const mcpCount = userMcpServers.size + projectMcpServers.size;
 
-  return { claudeMdCount, rulesCount, mcpCount, hooksCount, outputStyle };
+  // sandbox.enabled, taking the highest-precedence settings file that defines it
+  // (project-local > project > user-local > user). CLI flag overrides are not
+  // visible to a subprocess, so they can't be reflected here.
+  let sandboxEnabled = false;
+  const sandboxSources = [
+    cwd ? path.join(cwd, '.claude', 'settings.local.json') : null,
+    cwd ? path.join(cwd, '.claude', 'settings.json') : null,
+    path.join(claudeDir, 'settings.local.json'),
+    path.join(claudeDir, 'settings.json'),
+  ];
+  for (const source of sandboxSources) {
+    if (!source) continue;
+    const value = readSandboxEnabled(source);
+    if (value !== undefined) {
+      sandboxEnabled = value;
+      break;
+    }
+  }
+
+  return { claudeMdCount, rulesCount, mcpCount, hooksCount, outputStyle, sandboxEnabled };
 }
 
 export async function countConfigs(cwd?: string): Promise<ConfigCounts> {

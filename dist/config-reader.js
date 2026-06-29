@@ -80,6 +80,22 @@ function readStringSetting(filePath, key) {
     }
     return undefined;
 }
+function readSandboxEnabled(filePath) {
+    if (!fs.existsSync(filePath))
+        return undefined;
+    try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        const config = JSON.parse(content);
+        const enabled = config?.sandbox?.enabled;
+        if (typeof enabled === 'boolean') {
+            return enabled;
+        }
+    }
+    catch (error) {
+        debug(`Failed to read sandbox.enabled from ${filePath}:`, error);
+    }
+    return undefined;
+}
 function countRulesInDir(rulesDir) {
     if (!fs.existsSync(rulesDir))
         return 0;
@@ -225,7 +241,8 @@ function isConfigCounts(value) {
         && typeof counts.hooksCount === 'number'
         && Number.isFinite(counts.hooksCount)
         && counts.hooksCount >= 0
-        && (counts.outputStyle === undefined || typeof counts.outputStyle === 'string'));
+        && (counts.outputStyle === undefined || typeof counts.outputStyle === 'string')
+        && typeof counts.sandboxEnabled === 'boolean');
 }
 function readConfigCache(cacheKey, homeDir) {
     try {
@@ -359,7 +376,26 @@ function computeConfigCountsFresh(cwd) {
     // Note: Deduplication only occurs within each scope, not across scopes.
     // A server with the same name in both user and project scope counts as 2 (separate configs).
     const mcpCount = userMcpServers.size + projectMcpServers.size;
-    return { claudeMdCount, rulesCount, mcpCount, hooksCount, outputStyle };
+    // sandbox.enabled, taking the highest-precedence settings file that defines it
+    // (project-local > project > user-local > user). CLI flag overrides are not
+    // visible to a subprocess, so they can't be reflected here.
+    let sandboxEnabled = false;
+    const sandboxSources = [
+        cwd ? path.join(cwd, '.claude', 'settings.local.json') : null,
+        cwd ? path.join(cwd, '.claude', 'settings.json') : null,
+        path.join(claudeDir, 'settings.local.json'),
+        path.join(claudeDir, 'settings.json'),
+    ];
+    for (const source of sandboxSources) {
+        if (!source)
+            continue;
+        const value = readSandboxEnabled(source);
+        if (value !== undefined) {
+            sandboxEnabled = value;
+            break;
+        }
+    }
+    return { claudeMdCount, rulesCount, mcpCount, hooksCount, outputStyle, sandboxEnabled };
 }
 export async function countConfigs(cwd) {
     const homeDir = os.homedir();

@@ -80,6 +80,7 @@ export interface HudConfig {
         showSessionName: boolean;
         showClaudeCodeVersion: boolean;
         showEffortLevel: boolean;
+        showSandbox: boolean;
         showMemoryUsage: boolean;
         showPromptCache: boolean;
         promptCacheTtlSeconds: number;

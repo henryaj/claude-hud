@@ -358,6 +358,59 @@ async function writeHudConfig(homeDir, config) {
   await fs.writeFile(path.join(dir, "config.json"), JSON.stringify(config), "utf8");
 }
 
+test("CLI shows the sandbox badge based on sandbox.enabled in settings", async (t) => {
+  const fixturePath = fileURLToPath(
+    new URL("./fixtures/transcript-render.jsonl", import.meta.url),
+  );
+  const homeDir = await mkdtemp(path.join(tmpdir(), "claude-hud-home-"));
+  const projectDir = path.join(homeDir, "dev", "apps", "my-project");
+  const fs = await import("node:fs/promises");
+  await fs.mkdir(path.join(homeDir, ".claude"), { recursive: true });
+  await fs.mkdir(path.join(projectDir, ".claude"), { recursive: true });
+
+  const stdin = JSON.stringify({
+    model: { display_name: "Opus" },
+    context_window: {
+      context_window_size: 200000,
+      current_usage: { input_tokens: 45000 },
+    },
+    transcript_path: fixturePath,
+    cwd: projectDir,
+  });
+  const run = () =>
+    spawnSync("node", ["dist/index.js"], {
+      cwd: path.resolve(process.cwd()),
+      input: stdin,
+      encoding: "utf8",
+      env: { ...process.env, HOME: homeDir, LANG: "C" },
+    });
+
+  try {
+    let result = run();
+    if (skipIfSpawnBlocked(result, t)) return;
+    assert.doesNotMatch(stripAnsi(result.stdout), /sandbox/, "no badge without settings");
+
+    await writeFile(
+      path.join(homeDir, ".claude", "settings.json"),
+      JSON.stringify({ sandbox: { enabled: true } }),
+      "utf8",
+    );
+    result = run();
+    assert.match(stripAnsi(result.stdout), /sandbox/, "badge shows when user settings enable sandbox");
+
+    // Project settings take precedence over user settings.
+    await writeFile(
+      path.join(projectDir, ".claude", "settings.json"),
+      JSON.stringify({ sandbox: { enabled: false } }),
+      "utf8",
+    );
+    result = run();
+    assert.doesNotMatch(stripAnsi(result.stdout), /sandbox/, "project settings override user (disabled)");
+  } finally {
+    await rm(homeDir, { recursive: true, force: true });
+  }
+});
+
 test("CLI renders line layout 'Added dirs:' on a separate line", async (t) => {
   const fixturePath = fileURLToPath(
     new URL("./fixtures/transcript-render.jsonl", import.meta.url),

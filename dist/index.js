@@ -72,7 +72,7 @@ export async function main(overrides = {}) {
             lastCompactBoundaryAt: transcript.lastCompactBoundaryAt,
             lastCompactPostTokens: transcript.lastCompactPostTokens,
         });
-        const { claudeMdCount, rulesCount, mcpCount, hooksCount, outputStyle } = await deps.countConfigs(stdin.cwd);
+        const { claudeMdCount, rulesCount, mcpCount, hooksCount, outputStyle, sandboxEnabled } = await deps.countConfigs(stdin.cwd);
         const config = await deps.loadConfig();
         setLanguage(config.language);
         const gitStatus = config.gitStatus.enabled
@@ -138,6 +138,7 @@ export async function main(overrides = {}) {
             claudeCodeVersion,
             effortLevel: effortInfo?.level,
             effortSymbol: effortInfo?.symbol,
+            sandboxEnabled: config.display.showSandbox ? sandboxEnabled : undefined,
         };
         deps.render(ctx);
     }
