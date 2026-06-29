@@ -3,11 +3,13 @@ import type { HudColorName, HudColorValue, HudColorOverrides } from '../config.j
 export const RESET = '\x1b[0m';
 
 const DIM = '\x1b[2m';
-const RED = '\x1b[31m';
-const GREEN = '\x1b[32m';
-const YELLOW = '\x1b[33m';
-const MAGENTA = '\x1b[35m';
-const CYAN = '\x1b[36m';
+// Muted 256-color shades instead of the bright basic-ANSI primaries, so the HUD
+// reads calmer. (167 soft terracotta, 108 sage, 179 amber, 139 mauve, 109 teal.)
+const RED = '\x1b[38;5;167m';
+const GREEN = '\x1b[38;5;108m';
+const YELLOW = '\x1b[38;5;179m';
+const MAGENTA = '\x1b[38;5;139m';
+const CYAN = '\x1b[38;5;109m';
 const BRIGHT_BLUE = '\x1b[94m';
 const BRIGHT_MAGENTA = '\x1b[95m';
 const CLAUDE_ORANGE = '\x1b[38;5;208m';

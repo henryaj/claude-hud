@@ -30,7 +30,7 @@ export function renderProjectLine(ctx) {
     if (display?.showModel !== false) {
         const model = formatModelName(getModelName(ctx.stdin), ctx.config?.display?.modelFormat, ctx.config?.display?.modelOverride);
         const modelDisplay = formatModelDisplay(model, ctx);
-        parts.push(modelColor(`[${modelDisplay}]`, colors));
+        parts.push(modelColor(modelDisplay, colors));
     }
     let projectPart = null;
     if (display?.showProject !== false && ctx.stdin.cwd) {
@@ -83,7 +83,7 @@ export function renderProjectLine(ctx) {
                 gitInner.push(`[${diffParts.join(' ')}]`);
             }
         }
-        gitPart = `${gitColor('git:(', colors)}${gitInner.join(' ')}${gitColor(')', colors)}`;
+        gitPart = `${gitColor(':', colors)}${gitInner.join(' ')}`;
     }
     const projectWithDirs = projectPart && addedDirsPart
         ? `${projectPart} ${addedDirsPart}`
@@ -94,7 +94,7 @@ export function renderProjectLine(ctx) {
             parts.push(gitPart);
         }
         else {
-            parts.push(`${projectWithDirs} ${gitPart}`);
+            parts.push(`${projectWithDirs}${gitPart}`);
         }
     }
     else if (projectWithDirs) {

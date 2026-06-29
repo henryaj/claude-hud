@@ -178,6 +178,12 @@ const ENTERPRISE_ALIAS_LABELS = {
     haikuplan: 'Claude Haiku',
 };
 export function getModelName(stdin) {
+    const resolved = resolveModelName(stdin);
+    // Collapse to just the model family, lowercased (e.g. "Claude Opus 4" -> "opus").
+    const family = resolved.match(/opus|sonnet|haiku|fable/i);
+    return family ? family[0].toLowerCase() : resolved;
+}
+function resolveModelName(stdin) {
     const displayName = stdin.model?.display_name?.trim();
     if (displayName) {
         return displayName;

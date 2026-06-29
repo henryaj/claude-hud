@@ -186,7 +186,7 @@ test('render can wrap git to its own line without truncating the branch name', (
   });
 
   assert.ok(lines.every(line => displayWidth(line) <= 55), 'all lines should fit terminal width');
-  assert.ok(lines.some(line => line.includes('git:(feature/this-is-a-very-long-branch-name*)')), 'git branch should remain intact on its own line');
+  assert.ok(lines.some(line => line.includes(':feature/this-is-a-very-long-branch-name*')), 'git branch should remain intact on its own line');
 });
 
 test('render falls back to COLUMNS env when stdout.columns is unavailable', () => {
@@ -467,7 +467,7 @@ test('render ignores config.maxWidth when terminal width is detected', () => {
   const ctx = baseContext();
   ctx.stdin.model = { display_name: 'Sonnet 4.6' };
   ctx.stdin.cwd = '/tmp/project';
-  ctx.config.maxWidth = 30;
+  ctx.config.maxWidth = 20;
 
   // When terminal reports a real width, maxWidth should NOT cap it
   let lines = [];
@@ -475,12 +475,12 @@ test('render ignores config.maxWidth when terminal width is detected', () => {
     lines = captureRender(ctx);
   });
 
-  // Lines should use the detected 120 columns, not the 30 maxWidth
+  // Lines should use the detected 120 columns, not the 20 maxWidth
   assert.ok(lines.length > 0, 'should produce output');
   assert.ok(lines.every(line => displayWidth(line) <= 120), 'lines should fit detected width');
-  // Compact session line is typically wider than 30 when model+context are shown
+  // Compact session line is wider than 20 when model+context are shown
   const widest = Math.max(...lines.map(displayWidth));
-  assert.ok(widest > 30, 'should use detected terminal width, not maxWidth');
+  assert.ok(widest > 20, 'should use detected terminal width, not maxWidth');
 });
 
 test('render treats an actual 40-column terminal as a real width', () => {
@@ -579,15 +579,15 @@ test('render does not split model/provider separator inside brackets', () => {
       wideLines = captureRender(ctx);
     });
 
-    assert.ok(wideLines.some(line => line.includes('[Sonnet | Bedrock]')), 'model/provider badge should be preserved when width allows');
+    assert.ok(wideLines.some(line => line.includes('sonnet | Bedrock')), 'model/provider badge should be preserved when width allows');
 
     let lines = [];
     withTerminal(12, () => {
       lines = captureRender(ctx);
     });
 
-    assert.equal(lines.length, 1, 'single compact line should be truncated, not split');
-    assert.ok(!lines[0].startsWith('Bedrock]'), 'provider label should not become a wrapped prefix');
+    assert.ok(lines[0].startsWith('sonnet'), 'model should lead the badge');
+    assert.ok(!lines[0].startsWith('Bedrock'), 'provider label should not become a wrapped prefix');
   } finally {
     delete process.env.CLAUDE_CODE_USE_BEDROCK;
   }

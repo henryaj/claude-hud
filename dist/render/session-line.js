@@ -49,10 +49,10 @@ export function renderSessionLine(ctx) {
     // Model and context bar
     const modelDisplay = formatModelDisplay(model, ctx);
     if (display?.showModel !== false && display?.showContextBar !== false) {
-        parts.push(`${modelColor(`[${modelDisplay}]`, colors)} ${bar} ${contextValueDisplay}`);
+        parts.push(`${modelColor(modelDisplay, colors)} ${bar} ${contextValueDisplay}`);
     }
     else if (display?.showModel !== false) {
-        parts.push(`${modelColor(`[${modelDisplay}]`, colors)} ${contextValueDisplay}`);
+        parts.push(`${modelColor(modelDisplay, colors)} ${contextValueDisplay}`);
     }
     else if (display?.showContextBar !== false) {
         parts.push(`${bar} ${contextValueDisplay}`);
@@ -106,7 +106,7 @@ export function renderSessionLine(ctx) {
                 gitParts.push(` ${statParts.join(' ')}`);
             }
         }
-        gitPart = `${gitColor('git:(', colors)}${gitBranchColor(gitParts.join(''), colors)}${gitColor(')', colors)}`;
+        gitPart = `${gitColor(':', colors)}${gitBranchColor(gitParts.join(''), colors)}`;
     }
     if (projectPart && gitPart) {
         if (branchOverflow === 'wrap') {
@@ -114,7 +114,7 @@ export function renderSessionLine(ctx) {
             parts.push(gitPart);
         }
         else {
-            parts.push(`${projectPart} ${gitPart}`);
+            parts.push(`${projectPart}${gitPart}`);
         }
     }
     else if (projectPart) {

@@ -35,7 +35,7 @@ export function renderProjectLine(ctx: RenderContext): string | null {
   if (display?.showModel !== false) {
     const model = formatModelName(getModelName(ctx.stdin), ctx.config?.display?.modelFormat, ctx.config?.display?.modelOverride);
     const modelDisplay = formatModelDisplay(model, ctx);
-    parts.push(modelColor(`[${modelDisplay}]`, colors));
+    parts.push(modelColor(modelDisplay, colors));
   }
 
   let projectPart: string | null = null;
@@ -94,7 +94,7 @@ export function renderProjectLine(ctx: RenderContext): string | null {
       }
     }
 
-    gitPart = `${gitColor('git:(', colors)}${gitInner.join(' ')}${gitColor(')', colors)}`;
+    gitPart = `${gitColor(':', colors)}${gitInner.join(' ')}`;
   }
 
   const projectWithDirs = projectPart && addedDirsPart
@@ -106,7 +106,7 @@ export function renderProjectLine(ctx: RenderContext): string | null {
       parts.push(projectWithDirs);
       parts.push(gitPart);
     } else {
-      parts.push(`${projectWithDirs} ${gitPart}`);
+      parts.push(`${projectWithDirs}${gitPart}`);
     }
   } else if (projectWithDirs) {
     parts.push(projectWithDirs);

@@ -248,29 +248,29 @@ test('renderSessionLine handles missing cache token fields', () => {
 });
 
 test('getContextColor returns yellow for warning threshold', () => {
-  assert.equal(getContextColor(70), '\x1b[33m');
+  assert.equal(getContextColor(70), '\x1b[38;5;179m');
 });
 
 test('getContextColor respects custom thresholds', () => {
   const thresholds = { warning: 30, critical: 50 };
-  assert.equal(getContextColor(10, undefined, thresholds), '\x1b[32m'); // green
-  assert.equal(getContextColor(30, undefined, thresholds), '\x1b[33m'); // yellow
-  assert.equal(getContextColor(49, undefined, thresholds), '\x1b[33m'); // still yellow
-  assert.equal(getContextColor(50, undefined, thresholds), '\x1b[31m'); // red
-  assert.equal(getContextColor(90, undefined, thresholds), '\x1b[31m'); // red
+  assert.equal(getContextColor(10, undefined, thresholds), '\x1b[38;5;108m'); // green
+  assert.equal(getContextColor(30, undefined, thresholds), '\x1b[38;5;179m'); // yellow
+  assert.equal(getContextColor(49, undefined, thresholds), '\x1b[38;5;179m'); // still yellow
+  assert.equal(getContextColor(50, undefined, thresholds), '\x1b[38;5;167m'); // red
+  assert.equal(getContextColor(90, undefined, thresholds), '\x1b[38;5;167m'); // red
 });
 
 test('getContextColor falls back to defaults when thresholds undefined', () => {
-  assert.equal(getContextColor(69, undefined, {}), '\x1b[32m');
-  assert.equal(getContextColor(70, undefined, {}), '\x1b[33m');
-  assert.equal(getContextColor(85, undefined, {}), '\x1b[31m');
+  assert.equal(getContextColor(69, undefined, {}), '\x1b[38;5;108m');
+  assert.equal(getContextColor(70, undefined, {}), '\x1b[38;5;179m');
+  assert.equal(getContextColor(85, undefined, {}), '\x1b[38;5;167m');
 });
 
 test('getContextColor honours partial threshold overrides', () => {
   // Only warning overridden — critical stays at default 85
-  assert.equal(getContextColor(30, undefined, { warning: 30 }), '\x1b[33m');
-  assert.equal(getContextColor(84, undefined, { warning: 30 }), '\x1b[33m');
-  assert.equal(getContextColor(85, undefined, { warning: 30 }), '\x1b[31m');
+  assert.equal(getContextColor(30, undefined, { warning: 30 }), '\x1b[38;5;179m');
+  assert.equal(getContextColor(84, undefined, { warning: 30 }), '\x1b[38;5;179m');
+  assert.equal(getContextColor(85, undefined, { warning: 30 }), '\x1b[38;5;167m');
 });
 
 test('getContextColor and getQuotaColor respect custom semantic overrides', () => {
@@ -282,10 +282,10 @@ test('getContextColor and getQuotaColor respect custom semantic overrides', () =
     critical: 'red',
   };
 
-  assert.equal(getContextColor(10, colors), '\x1b[36m');
+  assert.equal(getContextColor(10, colors), '\x1b[38;5;109m');
   assert.equal(getContextColor(70, colors), '\x1b[94m');
-  assert.equal(getQuotaColor(25, colors), '\x1b[35m');
-  assert.equal(getQuotaColor(80, colors), '\x1b[33m');
+  assert.equal(getQuotaColor(25, colors), '\x1b[38;5;139m');
+  assert.equal(getQuotaColor(80, colors), '\x1b[38;5;179m');
 });
 
 test('getContextColor and getQuotaColor resolve 256-color indices', () => {
@@ -354,7 +354,7 @@ test('renderSessionLine handles root path gracefully', () => {
   const ctx = baseContext();
   ctx.stdin.cwd = '/';
   const line = renderSessionLine(ctx);
-  assert.ok(line.includes('[Opus]'));
+  assert.ok(line.includes('opus'));
 });
 
 test('renderSessionLine supports token-based context display', () => {
@@ -441,7 +441,7 @@ test('renderSessionLine omits project name when cwd is undefined', () => {
   const ctx = baseContext();
   ctx.stdin.cwd = undefined;
   const line = renderSessionLine(ctx);
-  assert.ok(line.includes('[Opus]'));
+  assert.ok(line.includes('opus'));
 });
 
 test('renderSessionLine includes session name when showSessionName is true', () => {
@@ -500,7 +500,7 @@ test('renderSessionLine places customLine before model badge when position is fi
   ctx.config.display.customLinePosition = 'first';
   const line = stripAnsi(renderSessionLine(ctx));
   const customIdx = line.indexOf('prod-server');
-  const modelIdx = line.indexOf('[Opus]');
+  const modelIdx = line.indexOf('opus');
   assert.ok(customIdx >= 0, 'should include custom line');
   assert.ok(modelIdx >= 0, 'should include model badge');
   assert.ok(customIdx < modelIdx, `custom line (${customIdx}) should appear before model badge (${modelIdx})`);
@@ -512,7 +512,7 @@ test('renderSessionLine places customLine at end when position is last', () => {
   ctx.config.display.customLinePosition = 'last';
   const line = stripAnsi(renderSessionLine(ctx));
   const customIdx = line.indexOf('prod-server');
-  const modelIdx = line.indexOf('[Opus]');
+  const modelIdx = line.indexOf('opus');
   assert.ok(customIdx > modelIdx, 'custom line should appear after model badge when position is last');
 });
 
@@ -521,7 +521,7 @@ test('renderSessionLine applies modelFormat compact', () => {
   ctx.stdin.model = { display_name: 'Opus 4.6 (1M context)' };
   ctx.config.display.modelFormat = 'compact';
   const line = stripAnsi(renderSessionLine(ctx));
-  assert.ok(line.includes('Opus 4.6'));
+  assert.ok(line.includes('opus'));
   assert.ok(!line.includes('context'));
 });
 
@@ -622,7 +622,7 @@ test('renderProjectLine places customLine before model badge when position is fi
   ctx.config.display.customLinePosition = 'first';
   const line = stripAnsi(renderProjectLine(ctx) ?? '');
   const customIdx = line.indexOf('prod-server');
-  const modelIdx = line.indexOf('[Opus]');
+  const modelIdx = line.indexOf('opus');
   assert.ok(customIdx >= 0, 'should include custom line');
   assert.ok(modelIdx >= 0, 'should include model badge');
   assert.ok(customIdx < modelIdx, `custom line (${customIdx}) should appear before model badge (${modelIdx})`);
@@ -635,7 +635,7 @@ test('renderProjectLine places customLine at end when position is last', () => {
   ctx.config.display.customLinePosition = 'last';
   const line = stripAnsi(renderProjectLine(ctx) ?? '');
   const customIdx = line.indexOf('prod-server');
-  const modelIdx = line.indexOf('[Opus]');
+  const modelIdx = line.indexOf('opus');
   assert.ok(customIdx > modelIdx, 'custom line should appear after model badge when position is last');
 });
 
@@ -644,7 +644,7 @@ test('renderProjectLine applies modelFormat compact (strips context suffix)', ()
   ctx.stdin.model = { display_name: 'Opus 4.6 (1M context)' };
   ctx.config.display.modelFormat = 'compact';
   const line = stripAnsi(renderProjectLine(ctx) ?? '');
-  assert.ok(line.includes('Opus 4.6'));
+  assert.ok(line.includes('opus'));
   assert.ok(!line.includes('context'));
 });
 
@@ -653,7 +653,7 @@ test('renderProjectLine applies modelFormat short (strips Claude prefix and cont
   ctx.stdin.model = { display_name: 'Claude Sonnet 3.5 (200k context)' };
   ctx.config.display.modelFormat = 'short';
   const line = stripAnsi(renderProjectLine(ctx) ?? '');
-  assert.ok(line.includes('Sonnet 3.5'));
+  assert.ok(line.includes('sonnet'));
   assert.ok(!line.includes('Claude'));
   assert.ok(!line.includes('context'));
 });
@@ -682,7 +682,7 @@ test('renderProjectLine shows custom provider before the model when showProvider
   ctx.config.display.showProvider = true;
   ctx.config.display.providerName = 'MyProxy';
   const line = stripAnsi(renderProjectLine(ctx) ?? '');
-  assert.ok(line.includes('[MyProxy | Claude Opus 4.6]'), `got: ${line}`);
+  assert.ok(line.includes('MyProxy | opus'), `got: ${line}`);
 });
 
 test('renderProjectLine falls back to auto-detected provider before the model', () => {
@@ -692,7 +692,7 @@ test('renderProjectLine falls back to auto-detected provider before the model', 
     ctx.stdin.model = { display_name: 'Claude Opus 4.6' };
     ctx.config.display.showProvider = true;
     const line = stripAnsi(renderProjectLine(ctx) ?? '');
-    assert.ok(line.includes('[Bedrock | Claude Opus 4.6]'), `got: ${line}`);
+    assert.ok(line.includes('Bedrock | opus'), `got: ${line}`);
   } finally {
     delete process.env.CLAUDE_CODE_USE_BEDROCK;
   }
@@ -704,7 +704,7 @@ test('renderProjectLine keeps the legacy trailing provider label when showProvid
     const ctx = baseContext();
     ctx.stdin.model = { display_name: 'Claude Opus 4.6' };
     const line = stripAnsi(renderProjectLine(ctx) ?? '');
-    assert.ok(line.includes('[Claude Opus 4.6 | Bedrock]'), `got: ${line}`);
+    assert.ok(line.includes('opus | Bedrock'), `got: ${line}`);
   } finally {
     delete process.env.CLAUDE_CODE_USE_BEDROCK;
   }
@@ -716,7 +716,7 @@ test('renderSessionLine shows custom provider before the model when showProvider
   ctx.config.display.showProvider = true;
   ctx.config.display.providerName = 'MyProxy';
   const line = stripAnsi(renderSessionLine(ctx));
-  assert.ok(line.includes('[MyProxy | Claude Opus 4.6]'), `got: ${line}`);
+  assert.ok(line.includes('MyProxy | opus'), `got: ${line}`);
 });
 
 test('renderSessionLine falls back to auto-detected provider before the model', () => {
@@ -726,7 +726,7 @@ test('renderSessionLine falls back to auto-detected provider before the model', 
     ctx.stdin.model = { display_name: 'Claude Opus 4.6' };
     ctx.config.display.showProvider = true;
     const line = stripAnsi(renderSessionLine(ctx));
-    assert.ok(line.includes('[Bedrock | Claude Opus 4.6]'), `got: ${line}`);
+    assert.ok(line.includes('Bedrock | opus'), `got: ${line}`);
   } finally {
     delete process.env.CLAUDE_CODE_USE_BEDROCK;
   }
@@ -738,7 +738,7 @@ test('renderSessionLine keeps the legacy trailing provider label when showProvid
     const ctx = baseContext();
     ctx.stdin.model = { display_name: 'Claude Opus 4.6' };
     const line = stripAnsi(renderSessionLine(ctx));
-    assert.ok(line.includes('[Claude Opus 4.6 | Bedrock]'), `got: ${line}`);
+    assert.ok(line.includes('opus | Bedrock'), `got: ${line}`);
   } finally {
     delete process.env.CLAUDE_CODE_USE_BEDROCK;
   }
@@ -756,9 +756,9 @@ test('renderProjectLine uses configurable element colors', () => {
   ctx.config.colors.custom = '#ff6600';
 
   const line = renderProjectLine(ctx);
-  assert.ok(line?.includes('\x1b[38;5;214m[Opus]\x1b[0m'));
+  assert.ok(line?.includes('\x1b[38;5;214mopus\x1b[0m'));
   assert.ok(line?.includes('\x1b[38;5;82mmy-project\x1b[0m'));
-  assert.ok(line?.includes('\x1b[38;5;220mgit:(\x1b[0m'));
+  assert.ok(line?.includes('\x1b[38;5;220m:\x1b[0m'));
   assert.ok(line?.includes('\x1b[38;2;51;255;0mmain\x1b[0m'));
   assert.ok(line?.includes('\x1b[38;2;255;102;0mStay sharp\x1b[0m'));
 });
@@ -959,7 +959,7 @@ test('renderSessionLine omits project name when showProject is false', () => {
   ctx.config.display.showProject = false;
   const line = renderSessionLine(ctx);
   assert.ok(!line.includes('my-project'), 'should not include project name when showProject is false');
-  assert.ok(line.includes('git:('), 'should still include git status when showProject is false');
+  assert.ok(stripAnsi(line).includes(':main'), 'should still include git status when showProject is false');
 });
 
 test('renderProjectLine keeps git status when showProject is false', () => {
@@ -968,7 +968,7 @@ test('renderProjectLine keeps git status when showProject is false', () => {
   ctx.gitStatus = { branch: 'main', isDirty: true, ahead: 0, behind: 0 };
   ctx.config.display.showProject = false;
   const line = renderProjectLine(ctx);
-  assert.ok(line?.includes('git:('), 'should still include git status');
+  assert.ok(stripAnsi(line ?? '').includes(':main'), 'should still include git status');
   assert.ok(!line?.includes('my-project'), 'should hide project path');
 });
 
@@ -977,7 +977,7 @@ test('renderSessionLine displays git branch when present', () => {
   ctx.stdin.cwd = '/tmp/my-project';
   ctx.gitStatus = { branch: 'main', isDirty: false, ahead: 0, behind: 0 };
   const line = renderSessionLine(ctx);
-  assert.ok(line.includes('git:('));
+  assert.ok(stripAnsi(line).includes(':main'));
   assert.ok(line.includes('main'));
 });
 
@@ -994,7 +994,7 @@ test('renderSessionLine displays branch with slashes', () => {
   ctx.stdin.cwd = '/tmp/my-project';
   ctx.gitStatus = { branch: 'feature/add-auth', isDirty: false, ahead: 0, behind: 0 };
   const line = renderSessionLine(ctx);
-  assert.ok(line.includes('git:('));
+  assert.ok(stripAnsi(line).includes(':feature/add-auth'));
   assert.ok(line.includes('feature/add-auth'));
 });
 
@@ -1004,7 +1004,7 @@ test('renderSessionLine can give git its own segment for wrapping', () => {
   ctx.gitStatus = { branch: 'feature/add-auth', isDirty: false, ahead: 0, behind: 0 };
   ctx.config.gitStatus.branchOverflow = 'wrap';
   const line = stripAnsi(renderSessionLine(ctx));
-  assert.ok(line.includes('my-project | git:(feature/add-auth)'), 'git should render as a separate segment');
+  assert.ok(line.includes('my-project | :feature/add-auth'), 'git should render as a separate segment');
 });
 
 test('renderProjectLine can give git its own segment for wrapping', () => {
@@ -1013,7 +1013,7 @@ test('renderProjectLine can give git its own segment for wrapping', () => {
   ctx.gitStatus = { branch: 'feature/add-auth', isDirty: false, ahead: 0, behind: 0 };
   ctx.config.gitStatus.branchOverflow = 'wrap';
   const line = stripAnsi(renderProjectLine(ctx) ?? '');
-  assert.ok(line.includes('my-project │ git:(feature/add-auth)'), 'git should render as a separate segment');
+  assert.ok(line.includes('my-project │ :feature/add-auth'), 'git should render as a separate segment');
 });
 
 test('renderToolsLine renders running and completed tools', () => {
@@ -1532,7 +1532,7 @@ test('renderSessionLine does not add a synthetic subscriber label from usageData
     sevenDayResetAt: null,
   };
   const line = renderSessionLine(ctx);
-  assert.ok(line.includes('Opus'), 'should include model name');
+  assert.ok(line.includes('opus'), 'should include model name');
   assert.ok(!line.includes('Max'), 'should not include plan name derived outside stdin');
 });
 
@@ -1630,7 +1630,7 @@ test('renderSessionLine shows Bedrock label and hides usage for bedrock model id
       sevenDayResetAt: null,
     };
     const line = renderSessionLine(ctx);
-    assert.ok(line.includes('Sonnet'), 'should include model name');
+    assert.ok(line.includes('sonnet'), 'should include model name');
     assert.ok(line.includes('Bedrock'), 'should include Bedrock label');
     assert.ok(!line.includes('5h'), 'should hide usage display');
   } finally {
@@ -1941,11 +1941,11 @@ test('renderUsageLine supports remaining-based usage display with used-percent c
   const line = renderUsageLine(ctx);
   assert.ok(line, 'should render usage line');
   assert.ok(
-    line.includes('\x1b[36m75%\x1b[0m'),
+    line.includes('\x1b[38;5;109m75%\x1b[0m'),
     `expected remaining 5h usage with normal usage color, got: ${JSON.stringify(line)}`,
   );
   assert.ok(
-    line.includes('\x1b[35m15%\x1b[0m'),
+    line.includes('\x1b[38;5;139m15%\x1b[0m'),
     `expected remaining weekly usage with used-percent warning color, got: ${JSON.stringify(line)}`,
   );
 });
@@ -2136,7 +2136,7 @@ test('renderSessionLine uses custom critical colors for limit-reached usage stat
   };
 
   const criticalLine = renderSessionLine(ctx);
-  assert.ok(criticalLine.includes('\x1b[35m⚠ Limit reached'), `expected custom critical color, got: ${JSON.stringify(criticalLine)}`);
+  assert.ok(criticalLine.includes('\x1b[38;5;139m⚠ Limit reached'), `expected custom critical color, got: ${JSON.stringify(criticalLine)}`);
 });
 
 test('renderUsageLine uses custom usage palette overrides', () => {
@@ -2159,10 +2159,10 @@ test('renderUsageLine uses custom usage palette overrides', () => {
 
   const line = withTerminal(120, () => renderUsageLine(ctx));
   assert.ok(line, 'should render usage line');
-  assert.ok(line.includes('\x1b[36m███'), `expected custom usage bar color, got: ${JSON.stringify(line)}`);
-  assert.ok(line.includes('\x1b[36m25%\x1b[0m'), `expected custom usage percentage color, got: ${JSON.stringify(line)}`);
-  assert.ok(line.includes('\x1b[35m████████'), `expected custom usage warning color, got: ${JSON.stringify(line)}`);
-  assert.ok(line.includes('\x1b[35m80%\x1b[0m'), `expected custom usage warning percentage color, got: ${JSON.stringify(line)}`);
+  assert.ok(line.includes('\x1b[38;5;109m███'), `expected custom usage bar color, got: ${JSON.stringify(line)}`);
+  assert.ok(line.includes('\x1b[38;5;109m25%\x1b[0m'), `expected custom usage percentage color, got: ${JSON.stringify(line)}`);
+  assert.ok(line.includes('\x1b[38;5;139m████████'), `expected custom usage warning color, got: ${JSON.stringify(line)}`);
+  assert.ok(line.includes('\x1b[38;5;139m80%\x1b[0m'), `expected custom usage warning percentage color, got: ${JSON.stringify(line)}`);
 });
 
 test('quotaBar and coloredBar use custom barFilled and barEmpty characters', () => {
@@ -2343,7 +2343,7 @@ test('renderSessionLine handles missing showFileStats config (backward compatibi
   };
   // Should not crash and should not show file stats (default is false)
   const line = renderSessionLine(ctx);
-  assert.ok(line.includes('git:('), 'should still show git info');
+  assert.ok(stripAnsi(line).includes(':main'), 'should still show git info');
   assert.ok(!line.includes('!2'), 'should not show file stats when config missing');
 });
 
@@ -2387,7 +2387,7 @@ test('renderProjectLine colors ahead count at warning threshold', () => {
   ctx.gitStatus = { branch: 'main', isDirty: false, ahead: 12, behind: 0 };
 
   const line = renderProjectLine(ctx);
-  assert.ok(line?.includes('\x1b[33m↑12\x1b[0m'), 'ahead count should use warning color');
+  assert.ok(line?.includes('\x1b[38;5;179m↑12\x1b[0m'), 'ahead count should use warning color');
 });
 
 test('renderProjectLine colors ahead count at critical threshold', () => {
@@ -2403,7 +2403,7 @@ test('renderProjectLine colors ahead count at critical threshold', () => {
   ctx.gitStatus = { branch: 'main', isDirty: false, ahead: 25, behind: 0 };
 
   const line = renderProjectLine(ctx);
-  assert.ok(line?.includes('\x1b[31m↑25\x1b[0m'), 'ahead count should use critical color');
+  assert.ok(line?.includes('\x1b[38;5;167m↑25\x1b[0m'), 'ahead count should use critical color');
 });
 
 test('renderProjectLine strips control characters from project and branch links', () => {
@@ -3213,6 +3213,6 @@ test('renderSessionLine renders advisor inline on the same row (compact layout)'
   ctx.transcript.advisorModel = 'claude-opus-4-7';
   const plain = stripAnsi(renderSessionLine(ctx));
   assert.ok(plain.includes('Advisor: Opus 4.7'), `advisor segment missing: ${plain}`);
-  assert.ok(plain.includes('[Opus]'), 'model badge must still render first');
+  assert.ok(plain.includes('opus'), 'model badge must still render first');
   assert.ok(!plain.includes('\n'), 'compact session line must remain one row');
 });

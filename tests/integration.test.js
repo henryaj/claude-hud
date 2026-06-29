@@ -446,7 +446,7 @@ test("CLI renders inline added_dirs even when showProject is false", async (t) =
 
     assert.equal(result.status, 0, result.stderr || "non-zero exit");
     const firstLine = stripAnsi(result.stdout).split("\n")[0];
-    assert.match(firstLine, /\[Opus\]/, "model bracket should still render (sanity)");
+    assert.match(firstLine, /opus/, "model name should still render (sanity)");
     assert.doesNotMatch(firstLine, /my-project/, "project name should be hidden");
     assert.match(firstLine, /\+lib-foo/, "added dirs should still render");
   } finally {
