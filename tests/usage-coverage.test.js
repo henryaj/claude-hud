@@ -79,6 +79,25 @@ test('renderUsageLine returns null when usage below threshold', () => {
   assert.equal(renderUsageLine(ctx), null);
 });
 
+test('renderUsageLine returns only the session bar when usageBarOnly is set', () => {
+  const ctx = baseContext();
+  ctx.config.display.usageBarOnly = true;
+  ctx.usageData.fiveHour = 40;
+  ctx.usageData.sevenDay = 90; // would normally surface as a weekly window
+  const plain = stripAnsi(renderUsageLine(ctx) ?? '');
+  assert.ok(plain.includes('█') || plain.includes('░'), 'should render a usage bar');
+  assert.ok(!plain.includes('Usage'), 'no Usage label');
+  assert.ok(!plain.includes('5h') && !plain.includes('7d') && !/weekly/i.test(plain), 'no window labels');
+  assert.ok(!/%/.test(plain), 'no percentage');
+});
+
+test('renderUsageLine returns null with usageBarOnly when no session data', () => {
+  const ctx = baseContext();
+  ctx.config.display.usageBarOnly = true;
+  ctx.usageData.fiveHour = null;
+  assert.equal(renderUsageLine(ctx), null);
+});
+
 test('renderUsageLine shows balance label when below threshold', () => {
   const ctx = baseContext();
   ctx.config.display.usageThreshold = 50;

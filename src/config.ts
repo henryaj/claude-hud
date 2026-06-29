@@ -125,6 +125,7 @@ export interface HudConfig {
     usageBarEnabled: boolean;
     showResetLabel: boolean;
     usageCompact: boolean;
+    usageBarOnly: boolean;
     showTools: boolean;
     showSkills: boolean;
     showMcp: boolean;
@@ -214,6 +215,7 @@ export const DEFAULT_CONFIG: HudConfig = {
     usageBarEnabled: true,
     showResetLabel: true,
     usageCompact: false,
+    usageBarOnly: false,
     showTools: false,
     showSkills: false,
     showMcp: false,
@@ -604,6 +606,9 @@ export function mergeConfig(userConfig: Partial<HudConfig>): HudConfig {
     usageCompact: typeof migrated.display?.usageCompact === 'boolean'
       ? migrated.display.usageCompact
       : DEFAULT_CONFIG.display.usageCompact,
+    usageBarOnly: typeof migrated.display?.usageBarOnly === 'boolean'
+      ? migrated.display.usageBarOnly
+      : DEFAULT_CONFIG.display.usageBarOnly,
     showTools: typeof migrated.display?.showTools === 'boolean'
       ? migrated.display.showTools
       : DEFAULT_CONFIG.display.showTools,

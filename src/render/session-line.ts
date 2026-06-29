@@ -171,7 +171,12 @@ export function renderSessionLine(ctx: RenderContext): string {
   }
 
   // Usage limits display (shown when enabled in config, respects usageThreshold)
-  if (display?.showUsage !== false && ctx.usageData && !shouldHideUsage(ctx.stdin)) {
+  if (display?.showUsage !== false && ctx.usageData && !shouldHideUsage(ctx.stdin) && display?.usageBarOnly) {
+    // Just the current-session (5h) quota bar — no label, percentage, weekly, or reset time.
+    if (ctx.usageData.fiveHour !== null) {
+      parts.push(quotaBar(ctx.usageData.fiveHour, barWidth, colors));
+    }
+  } else if (display?.showUsage !== false && ctx.usageData && !shouldHideUsage(ctx.stdin)) {
     const usageCompact = display?.usageCompact ?? false;
     const showResetLabel = display?.showResetLabel ?? true;
     const usageValueMode = display?.usageValue ?? 'percent';

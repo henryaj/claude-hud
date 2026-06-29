@@ -70,6 +70,7 @@ export interface HudConfig {
         usageBarEnabled: boolean;
         showResetLabel: boolean;
         usageCompact: boolean;
+        usageBarOnly: boolean;
         showTools: boolean;
         showSkills: boolean;
         showMcp: boolean;

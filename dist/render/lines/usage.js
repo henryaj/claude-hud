@@ -19,6 +19,12 @@ export function renderUsageLine(ctx, alignLabels = false) {
     if (shouldHideUsage(ctx.stdin)) {
         return null;
     }
+    if (display?.usageBarOnly) {
+        // Just the current-session (5h) quota bar — no label, percentage, weekly, or reset time.
+        return ctx.usageData.fiveHour !== null
+            ? quotaBar(ctx.usageData.fiveHour, getAdaptiveBarWidth(), colors)
+            : null;
+    }
     const usageLabel = progressLabel("label.usage", colors, alignLabels);
     const balanceLabel = ctx.usageData.balanceLabel ?? null;
     const hasWindowData = ctx.usageData.fiveHour !== null || ctx.usageData.sevenDay !== null;
